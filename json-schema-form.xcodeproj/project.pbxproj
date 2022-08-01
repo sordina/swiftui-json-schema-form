@@ -43,6 +43,7 @@
 		473ED03428963EE2004E9AC3 /* card.schema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = card.schema.json; sourceTree = "<group>"; };
 		478732AB2896B9FE00BE7741 /* SchemaView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchemaView.swift; sourceTree = "<group>"; };
 		478732AD289749F100BE7741 /* geographical-location.schema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = "geographical-location.schema.json"; path = "json-schema-formTests/geographical-location.schema.json"; sourceTree = SOURCE_ROOT; };
+		478732AF2897587200BE7741 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		47E3E70028962D3E00087291 /* json-schema-form.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "json-schema-form.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		47E3E70328962D3E00087291 /* json_schema_formApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = json_schema_formApp.swift; sourceTree = "<group>"; };
 		47E3E70528962D3E00087291 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -86,6 +87,7 @@
 		47E3E6F728962D3E00087291 = {
 			isa = PBXGroup;
 			children = (
+				478732AF2897587200BE7741 /* README.md */,
 				47E3E70228962D3E00087291 /* json-schema-form */,
 				473ED02828963E01004E9AC3 /* json-schema-formTests */,
 				47E3E70128962D3E00087291 /* Products */,
