@@ -1,5 +1,5 @@
 //
-//  JsonValue.swift
+//  JsonSchema.swift
 //  Agent Dashboard
 //
 //  Created by Lyndon Maydwell on 25/7/2022.
