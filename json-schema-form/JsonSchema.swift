@@ -8,6 +8,21 @@
 
 import SwiftUI
 
+
+struct JsonSchema_Previews: PreviewProvider {
+    // TODO: Find some way to include geographical-location.schema in preview assets instead of main bundle
+    static var previews: some View {
+        let bundle = Bundle.main
+        if let path = bundle.path(forResource: "geographical-location.schema", ofType: "json") {
+            let data = try! Data(contentsOf: URL(fileURLWithPath: path))
+            let decoder = JSONDecoder()
+            try! decoder.decode(JsonSchema.self, from: data)
+        } else {
+            Text("Preview Schema could not be loaded.").padding()
+        }
+    }
+}
+
 // Used to test if a key is present. The actual decoding result isn't used.
 public struct TestKey: Decodable {
     var test = "testing"
@@ -23,7 +38,7 @@ public struct TestKey: Decodable {
 }
 
 // A JsonSchema is just a JsonType with additional metadata - $id, $schema
-public struct JsonSchema: Encodable, Decodable {
+public struct JsonSchema: Encodable, Decodable, View {
     var id: String
     var schema: String
     var type: JsonType
@@ -59,6 +74,16 @@ public struct JsonSchema: Encodable, Decodable {
         let str = String(data: data, encoding: .utf8)! // Throw error if not encodable
         return str
     }
+    
+    public var body: some View {
+        Form {
+            Section(header: Text("JSON Schema Form!")) {
+                Text(schema).font(.system(size: 12))
+                Text(id).font(.system(size: 12))
+                type
+            }
+        }
+    }
 }
 
 public enum SchemaType: String, Encodable, Decodable {
@@ -70,7 +95,7 @@ public enum SchemaType: String, Encodable, Decodable {
     case null
 }
 
-public enum JsonType: Encodable, Decodable {
+public enum JsonType: Encodable, Decodable, View {
     case object(ObjectType)
     case number(NumberType)
     case array(ArrayType)
@@ -78,8 +103,6 @@ public enum JsonType: Encodable, Decodable {
     case null(NullType)
     case boolean(BooleanType)
     case ref(RefType)
-//    case allOf(AllOfType)
-//    case anyOf(AnyOfType)
     
     enum CodingKeysType: String, CodingKey {
         case type
@@ -87,19 +110,11 @@ public enum JsonType: Encodable, Decodable {
     
     public init(from decoder: Decoder) throws {
         let kvr = try decoder.container(keyedBy: RefType.CodingKeys.self)
-//        let kvall = try decoder.container(keyedBy: AllOfType.CodingKeys.self)
-//        let kvany = try decoder.container(keyedBy: AnyOfType.CodingKeys.self)
         let c = try decoder.singleValueContainer()
 
         if let r = try kvr.decodeIfPresent(String.self, forKey: RefType.CodingKeys.ref) {
             self = .ref(RefType(ref: r))
             return
-//        } else if let _ = try kvall.decodeIfPresent(TestKey.self, forKey: AllOfType.CodingKeys.allOf) {
-//            self = .allOf(try c.decode(AllOfType.self))
-//            return
-//        } else if let _ = try kvany.decodeIfPresent(TestKey.self, forKey: AnyOfType.CodingKeys.anyOf) {
-//            self = .anyOf(try c.decode(AnyOfType.self))
-//            return
         } else {
             let kvt = try decoder.container(keyedBy: CodingKeysType.self)
             let t = try kvt.decode(SchemaType.self, forKey: CodingKeysType.type)
@@ -109,22 +124,16 @@ public enum JsonType: Encodable, Decodable {
                 let o = try c.decode(ObjectType.self)
                 try o.validate()
                 self = .object(o)
-                return
             case SchemaType.number:
                 self = .number(try c.decode(NumberType.self))
-                return
             case SchemaType.array:
                 self = .array(try c.decode(ArrayType.self))
-                return
             case SchemaType.boolean:
                 self = .boolean(try c.decode(BooleanType.self))
-                return
             case SchemaType.null:
                 self = .null(try c.decode(NullType.self))
-                return
             case SchemaType.string:
                 self = .string(try c.decode(StringType.self))
-                return
             }
         }
     }
@@ -133,31 +142,30 @@ public enum JsonType: Encodable, Decodable {
         switch self {
         case .object(let o):
             try o.encode(to: encoder)
-            return
         case .number(let n):
             try n.encode(to: encoder)
-            return
         case .array(let a):
             try a.encode(to: encoder)
-            return
         case .string(let s):
             try s.encode(to: encoder)
-            return
         case .null(let n):
             try n.encode(to: encoder)
-            return
         case .boolean(let b):
             try b.encode(to: encoder)
-            return
         case .ref(let r):
             try r.encode(to: encoder)
-            return
-//        case .allOf(let a):
-//            try a.encode(to: encoder)
-//            return
-//        case .anyOf(let a):
-//            try a.encode(to: encoder)
-//            return
+        }
+    }
+    
+    public var body: some View {
+        switch self {
+        case .object(let o): return AnyView(o)
+        case .number(let n): return AnyView(Text("Number"))
+        case .array(let a): return AnyView(Text("Array"))
+        case .string(let s): return AnyView(Text("String"))
+        case .null(let n): return AnyView(Text("Null"))
+        case .boolean(let b): return AnyView(Text("Boolean"))
+        case .ref(let r): return AnyView(Text("Ref"))
         }
     }
 }
@@ -238,17 +246,15 @@ public struct ArrayType: Encodable, Decodable {
         switch self.items.count {
         case 0:
             try c.encodeNil(forKey: .items)
-            return
         case 1:
             try c.encode(self.items[0], forKey: .items)
-            return
         default: throw(JsonDecodeError(message: "Couldn't encode items to JsonType"))
         }
     }
 }
 
 // This is a more explicit version of JSONValue
-public struct ObjectType: Encodable, Decodable {
+public struct ObjectType: Encodable, Decodable, View {
     let type: SchemaType = SchemaType.object
     var title: String?
     var description: String?
@@ -281,6 +287,13 @@ public struct ObjectType: Encodable, Decodable {
                     throw(JsonDecodeError(message: "Required dependentRequired value is missing key \(k)"))
                 }
             }
+        }
+    }
+    
+    public var body: some View {
+        VStack(alignment: .leading) {
+            if let t = title { Text(t) }
+            if let d = description { Text(d) }
         }
     }
 }
