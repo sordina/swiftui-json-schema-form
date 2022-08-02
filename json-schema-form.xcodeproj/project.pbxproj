@@ -13,7 +13,10 @@
 		473ED03828963EE2004E9AC3 /* geographical-location.schema.json in Resources */ = {isa = PBXBuildFile; fileRef = 473ED03228963EE2004E9AC3 /* geographical-location.schema.json */; };
 		473ED03928963EE2004E9AC3 /* address.schema.json in Resources */ = {isa = PBXBuildFile; fileRef = 473ED03328963EE2004E9AC3 /* address.schema.json */; };
 		473ED03A28963EE2004E9AC3 /* card.schema.json in Resources */ = {isa = PBXBuildFile; fileRef = 473ED03428963EE2004E9AC3 /* card.schema.json */; };
-		478732AE289749F100BE7741 /* geographical-location.schema.json in Resources */ = {isa = PBXBuildFile; fileRef = 478732AD289749F100BE7741 /* geographical-location.schema.json */; };
+		478732B628994ABA00BE7741 /* address.schema.json in Resources */ = {isa = PBXBuildFile; fileRef = 478732B028994ABA00BE7741 /* address.schema.json */; };
+		478732B828994ABA00BE7741 /* card.schema.json in Resources */ = {isa = PBXBuildFile; fileRef = 478732B228994ABA00BE7741 /* card.schema.json */; };
+		478732B928994ABA00BE7741 /* geographical-location.schema.json in Resources */ = {isa = PBXBuildFile; fileRef = 478732B328994ABA00BE7741 /* geographical-location.schema.json */; };
+		478732BA28994ABA00BE7741 /* calendar.schema.json in Resources */ = {isa = PBXBuildFile; fileRef = 478732B428994ABA00BE7741 /* calendar.schema.json */; };
 		47E3E70428962D3E00087291 /* json_schema_formApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47E3E70328962D3E00087291 /* json_schema_formApp.swift */; };
 		47E3E70628962D3E00087291 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47E3E70528962D3E00087291 /* ContentView.swift */; };
 		47E3E70828962D4000087291 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 47E3E70728962D4000087291 /* Assets.xcassets */; };
@@ -40,8 +43,11 @@
 		473ED03228963EE2004E9AC3 /* geographical-location.schema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "geographical-location.schema.json"; sourceTree = "<group>"; };
 		473ED03328963EE2004E9AC3 /* address.schema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = address.schema.json; sourceTree = "<group>"; };
 		473ED03428963EE2004E9AC3 /* card.schema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = card.schema.json; sourceTree = "<group>"; };
-		478732AD289749F100BE7741 /* geographical-location.schema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = "geographical-location.schema.json"; path = "json-schema-formTests/geographical-location.schema.json"; sourceTree = SOURCE_ROOT; };
 		478732AF2897587200BE7741 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		478732B028994ABA00BE7741 /* address.schema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = address.schema.json; sourceTree = "<group>"; };
+		478732B228994ABA00BE7741 /* card.schema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = card.schema.json; sourceTree = "<group>"; };
+		478732B328994ABA00BE7741 /* geographical-location.schema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "geographical-location.schema.json"; sourceTree = "<group>"; };
+		478732B428994ABA00BE7741 /* calendar.schema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = calendar.schema.json; sourceTree = "<group>"; };
 		47E3E70028962D3E00087291 /* json-schema-form.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "json-schema-form.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		47E3E70328962D3E00087291 /* json_schema_formApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = json_schema_formApp.swift; sourceTree = "<group>"; };
 		47E3E70528962D3E00087291 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -117,7 +123,10 @@
 		47E3E70928962D4000087291 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
-				478732AD289749F100BE7741 /* geographical-location.schema.json */,
+				478732B028994ABA00BE7741 /* address.schema.json */,
+				478732B428994ABA00BE7741 /* calendar.schema.json */,
+				478732B228994ABA00BE7741 /* card.schema.json */,
+				478732B328994ABA00BE7741 /* geographical-location.schema.json */,
 				47E3E70A28962D4000087291 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
@@ -216,7 +225,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				478732AE289749F100BE7741 /* geographical-location.schema.json in Resources */,
+				478732B928994ABA00BE7741 /* geographical-location.schema.json in Resources */,
+				478732B628994ABA00BE7741 /* address.schema.json in Resources */,
+				478732B828994ABA00BE7741 /* card.schema.json in Resources */,
+				478732BA28994ABA00BE7741 /* calendar.schema.json in Resources */,
 				47E3E70B28962D4000087291 /* Preview Assets.xcassets in Resources */,
 				47E3E70828962D4000087291 /* Assets.xcassets in Resources */,
 			);

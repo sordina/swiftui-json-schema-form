@@ -15,7 +15,7 @@ public struct JsonDecodeError: Error {
 }
 
 // This is a more explicit version of JSONValue
-public enum JsonValue: Encodable, Decodable, Equatable {
+public enum JsonValue: Encodable, Decodable, Equatable, Hashable {
     case JsonNull
     case JsonBool(value: Bool)
     case JsonString(value: String)

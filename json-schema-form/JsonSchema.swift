@@ -13,7 +13,8 @@ struct JsonSchema_Previews: PreviewProvider {
     // TODO: Find some way to include geographical-location.schema in preview assets instead of main bundle
     static var previews: some View {
         let bundle = Bundle.main
-        if let path = bundle.path(forResource: "geographical-location.schema", ofType: "json") {
+//        if let path = bundle.path(forResource: "geographical-location.schema", ofType: "json") {
+        if let path = bundle.path(forResource: "card.schema", ofType: "json") {
             let data = try! Data(contentsOf: URL(fileURLWithPath: path))
             let decoder = JSONDecoder()
             try! decoder.decode(JsonSchema.self, from: data)
@@ -77,11 +78,11 @@ public struct JsonSchema: Encodable, Decodable, View {
     
     public var body: some View {
         Form {
-            Section(header: Text("JSON Schema Form!")) {
-                Text(schema).font(.system(size: 12))
-                Text(id).font(.system(size: 12))
-                type
-            }
+                Section(header: Text("JSON Schema Form!")) {
+                    Link(schema, destination: URL(string: schema)!).font(.system(size: 12))
+                    Link(id, destination: URL(string: id)!).font(.system(size: 12))
+                    type
+                }
         }
     }
 }
@@ -160,8 +161,8 @@ public enum JsonType: Encodable, Decodable, View {
     public var body: some View {
         switch self {
         case .object(let o): return AnyView(o)
-        case .number(let n): return AnyView(Text("Number"))
-        case .array(let a): return AnyView(Text("Array"))
+        case .number(let n): return AnyView(n)
+        case .array(let a): return AnyView(a)
         case .string(let s): return AnyView(Text("String"))
         case .null(let n): return AnyView(Text("Null"))
         case .boolean(let b): return AnyView(Text("Boolean"))
@@ -194,12 +195,42 @@ public struct AnyOfType: Encodable, Decodable {
     }
 }
 
-public struct NumberType: Encodable, Decodable {
+public struct NumberType: Encodable, Decodable, View {
+    @State private var number: Float = 69 // TODO: Defaults, Environment Variable
+    
     var type: SchemaType = SchemaType.number
     var minimum: Float?
     var maximum: Float?
     var title: String?
     var description: String?
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case minimum
+        case maximum
+        case title
+        case description
+    }
+    
+    public var body: some View {
+        Section {
+            if let t = title { Text(t) }
+            if let d = description { Text(d) }
+            TextField("Number", value: $number, format: .number)
+                .onChange(of: number) { n in
+                    if let m = minimum {
+                        if n < m {
+                            number = m
+                        }
+                    }
+                    if let m = maximum {
+                        if n > m {
+                            number = m
+                        }
+                    }
+                }
+        }
+    }
 }
 
 public struct StringType: Encodable, Decodable {
@@ -220,16 +251,19 @@ public struct BooleanType: Encodable, Decodable {
     var description: String?
 }
 
-public struct ArrayType: Encodable, Decodable {
+public struct ArrayType: Encodable, Decodable, View {
+    @State var collection: Array<JsonValue> = [] // TODO: Use Environment instead of state
+    
     var type: SchemaType = SchemaType.array
     var items: Array<JsonType> = [] // Hack to work around limits of Struct allocation.
-    // TODO: Figure out a class based solution for this
     var title: String?
     var description: String?
     
     enum CodingKeys: String, CodingKey {
         case type
         case items
+        case title
+        case description
     }
     
     public init(from decoder: Decoder) throws {
@@ -249,6 +283,17 @@ public struct ArrayType: Encodable, Decodable {
         case 1:
             try c.encode(self.items[0], forKey: .items)
         default: throw(JsonDecodeError(message: "Couldn't encode items to JsonType"))
+        }
+    }
+    
+    public var body: some View {
+        Section {
+            ForEach(collection, id: \.self) { x in
+                Text(try! x.encodeString())
+            }
+            Button(title ?? "New Item") {
+                collection.append(.JsonString(value: "lol"))
+            }
         }
     }
 }
@@ -294,6 +339,12 @@ public struct ObjectType: Encodable, Decodable, View {
         VStack(alignment: .leading) {
             if let t = title { Text(t) }
             if let d = description { Text(d) }
+            if let p = properties {
+                ForEach(p.sorted(by: {$0.0 < $1.0}), id: \.key) { k, v in
+                    Text(k).bold()
+                    v
+                }
+            }
         }
     }
 }
