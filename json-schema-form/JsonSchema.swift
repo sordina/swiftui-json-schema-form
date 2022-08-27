@@ -13,7 +13,6 @@ struct JsonSchema_Previews: PreviewProvider {
     // TODO: Find some way to include geographical-location.schema in preview assets instead of main bundle
     static var previews: some View {
         let bundle = Bundle.main
-//        if let path = bundle.path(forResource: "geographical-location.schema", ofType: "json") {
         if let path = bundle.path(forResource: "card.schema", ofType: "json") {
             let data = try! Data(contentsOf: URL(fileURLWithPath: path))
             let decoder = JSONDecoder()
@@ -139,6 +138,19 @@ public enum JsonType: Encodable, Decodable, View {
         }
     }
     
+    // TODO: Quick implementation. Improve later.
+    public func jsonValue() throws -> JsonValue {
+        switch self {
+        case .object(let o): return try o.jsonValue()
+        case .number(let n): return try n.jsonValue()
+        case .array(let a): return try a.jsonValue()
+        case .string(let s): return try s.jsonValue()
+        case .null(_): return .JsonNull
+        case .boolean(let b): return try b.jsonValue()
+        case .ref(let r): return try r.jsonValue()
+        }
+    }
+    
     public func encode(to encoder: Encoder) throws {
         switch self {
         case .object(let o):
@@ -163,11 +175,29 @@ public enum JsonType: Encodable, Decodable, View {
         case .object(let o): return AnyView(o)
         case .number(let n): return AnyView(n)
         case .array(let a): return AnyView(a)
-        case .string(let s): return AnyView(Text("String"))
-        case .null(let n): return AnyView(Text("Null"))
-        case .boolean(let b): return AnyView(Text("Boolean"))
+        case .string(let s): return AnyView(s)
+        case .null(_): return AnyView(EmptyView()) // Null doesn't need a form
+        case .boolean(let b): return AnyView(b)
         case .ref(let r): return AnyView(Text("Ref"))
         }
+    }
+}
+
+public struct RefSchemaMap {
+    var entries: Dictionary<String, JsonSchema> = [:]
+    public init(files: Array<String>) {
+        var items: Array<(String, JsonSchema)> = []
+        for p in files {
+            let bundle = Bundle.main
+            if let path = bundle.path(forResource: p, ofType: "json") {
+                let data = try! Data(contentsOf: URL(fileURLWithPath: path))
+                let decoder = JSONDecoder()
+                let decoded = try! decoder.decode(JsonSchema.self, from: data)
+                items.append((decoded.id, decoded))
+            }
+        }
+        self.entries = Dictionary(uniqueKeysWithValues: items)
+        print("RefSchemaMap Keys:", self.entries.keys) // TODO: Remove debugging
     }
 }
 
@@ -176,6 +206,10 @@ public struct RefType: Encodable, Decodable {
 
     enum CodingKeys: String, CodingKey {
         case ref = "$ref"
+    }
+    
+    public func jsonValue() throws -> JsonValue {
+        return .JsonNull // TODO: Store an actual referenced value
     }
 }
 
@@ -212,6 +246,10 @@ public struct NumberType: Encodable, Decodable, View {
         case description
     }
     
+    public func jsonValue() throws -> JsonValue {
+        return .JsonNumber(value: Double(self.number))
+    }
+    
     public var body: some View {
         Section {
             if let t = title { Text(t) }
@@ -233,10 +271,43 @@ public struct NumberType: Encodable, Decodable, View {
     }
 }
 
-public struct StringType: Encodable, Decodable {
+public struct StringType: Encodable, Decodable, View {
     var type: SchemaType = SchemaType.string
     var title: String?
     var description: String?
+    @ObservedObject private var value = Model()
+    
+    class Model: ObservableObject {
+        var value: String = "String LOL"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case title
+        case description
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let kv = try decoder.container(keyedBy: CodingKeys.self)
+        self.type = SchemaType.array
+        self.title = try kv.decodeIfPresent(String.self, forKey: .title)
+        self.description = try kv.decodeIfPresent(String.self, forKey: .description)
+    }
+    
+    public func jsonValue() throws -> JsonValue {
+        return .JsonString(value: value.value)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var kv = encoder.container(keyedBy: CodingKeys.self)
+        try kv.encode(type, forKey: .type)
+        try kv.encode(title, forKey: .title)
+        try kv.encode(description, forKey: .description)
+    }
+    
+    public var body: some View {
+        TextField("String", text: $value.value)
+    }
 }
 
 public struct NullType: Encodable, Decodable {
@@ -245,17 +316,46 @@ public struct NullType: Encodable, Decodable {
     var description: String?
 }
 
-public struct BooleanType: Encodable, Decodable {
+public struct BooleanType: Encodable, Decodable, View {
     var type: SchemaType = SchemaType.boolean
     var title: String?
     var description: String?
+    @State var value = false
+    
+    enum CodingKeys: String, CodingKey {
+        case type
+        case title
+        case description
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let kv = try decoder.container(keyedBy: CodingKeys.self)
+        self.type = .boolean
+        self.title = try kv.decodeIfPresent(String.self, forKey: .title)
+        self.description = try kv.decodeIfPresent(String.self, forKey: .description)
+    }
+    
+    public func jsonValue() throws -> JsonValue {
+        return .JsonBool(value: self.value)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(self.type, forKey: .type)
+        try c.encode(self.title, forKey: .title)
+        try c.encode(self.description, forKey: .description)
+    }
+    
+    public var body: some View {
+        Toggle("Boolean", isOn: $value)
+    }
 }
 
 public struct ArrayType: Encodable, Decodable, View {
     @State var collection: Array<JsonValue> = [] // TODO: Use Environment instead of state
     
     var type: SchemaType = SchemaType.array
-    var items: Array<JsonType> = [] // Hack to work around limits of Struct allocation.
+    var items: Array<JsonType> = []
     var title: String?
     var description: String?
     
@@ -274,6 +374,10 @@ public struct ArrayType: Encodable, Decodable, View {
         }
     }
     
+    public func jsonValue() throws -> JsonValue {
+        return .JsonArray(value: self.collection)
+    }
+    
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(self.type, forKey: .type)
@@ -287,14 +391,17 @@ public struct ArrayType: Encodable, Decodable, View {
     }
     
     public var body: some View {
-        Section {
+        VStack(alignment: .leading) {
             ForEach(collection, id: \.self) { x in
                 Text(try! x.encodeString())
             }
-            Button(title ?? "New Item") {
-                collection.append(.JsonString(value: "lol"))
+            if let i = items[0] { // removes the need for Hashable w/ ForEach
+                i
+                Button(title ?? "Add") {
+                    collection.append(try! i.jsonValue()) // TODO: Make this try safe.
+                }.buttonStyle(.borderless)
             }
-        }
+        }.padding() // .border(.blue)
     }
 }
 
@@ -314,6 +421,16 @@ public struct ObjectType: Encodable, Decodable, View {
         case properties
         case required
         case dependentRequired
+    }
+    
+    public func jsonValue() throws -> JsonValue {
+        if let p = properties {
+            let q = try p.sorted(by: { $0.key < $1.key}).map { k,v in
+                (k, try v.jsonValue())
+            }
+            return .JsonObject(value: Dictionary(uniqueKeysWithValues: q))
+        }
+        return .JsonObject(value: [:]);
     }
     
     // Check that required and requiredDependent references are present in properties

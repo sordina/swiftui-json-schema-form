@@ -8,22 +8,47 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State var path = "geographical-location.schema"
+    @State var schema: JsonSchema?
+    @State var loading = "Loading..."
+    
+    var sm = RefSchemaMap(files: ["address.schema","calendar.schema","card.schema","geographical-location.schema"])
+    
+    func setSchema() {
+        let bundle = Bundle.main
+        if let path = bundle.path(forResource: self.path, ofType: "json") {
+            let data = try! Data(contentsOf: URL(fileURLWithPath: path))
+            let decoder = JSONDecoder()
+            self.schema = try! decoder.decode(JsonSchema.self, from: data)
+        } else {
+            self.schema = nil
+            self.loading = "Error finding schema file..."
+        }
+    }
+    
     var body: some View {
-        Text("Hello, world!")
-            .padding()
+        VStack(alignment: .leading) {
+            TextField("Path", text: $path).onChange(of: path) { s in
+                setSchema()
+            }.padding()
+            switch self.schema {
+            case .some(let s):
+                s
+            case .none:
+                Text(loading)
+                    .padding()
+                    .onAppear {
+                        setSchema()
+                    }
+                Spacer()
+            }
+        } // .environmentObject(ObservableObject)
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     // TODO: Find some way to include geographical-location.schema in preview assets instead of main bundle
     static var previews: some View {
-        let bundle = Bundle.main
-        if let path = bundle.path(forResource: "geographical-location.schema", ofType: "json") {
-            let data = try! Data(contentsOf: URL(fileURLWithPath: path))
-            let decoder = JSONDecoder()
-            try! decoder.decode(JsonSchema.self, from: data)
-        } else {
-            Text("Preview Schema could not be loaded.").padding()
-        }
+        ContentView()
     }
 }
