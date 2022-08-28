@@ -15,3 +15,4 @@ The main differences being:
 * [ ] Styles
 * [ ] More example schemas
 * [ ] Ability to lazy-load schemas from URLs (configurable)
+* [ ] Have arrays populate values with populated schemas, not jsonvalues

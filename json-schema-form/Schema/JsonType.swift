@@ -53,7 +53,6 @@ public enum JsonType: Encodable, Decodable, View {
         }
     }
     
-    // TODO: Quick implementation. Improve later.
     public func jsonValue() throws -> JsonValue {
         switch self {
         case .object(let o): return try o.jsonValue()
@@ -63,19 +62,6 @@ public enum JsonType: Encodable, Decodable, View {
         case .null(_): return .JsonNull
         case .boolean(let b): return try b.jsonValue()
         case .ref(let r): return try r.jsonValue()
-        }
-    }
-    
-    // TODO: Quick implementation. Improve later.
-    public var scalar: Bool {
-        switch self {
-        case .object(_): return false
-        case .number(_): return true
-        case .array(_): return false
-        case .string(_): return true
-        case .null(_): return true
-        case .boolean(_): return true
-        case .ref(_): return false // TODO: Find out how to do this dynamically
         }
     }
     

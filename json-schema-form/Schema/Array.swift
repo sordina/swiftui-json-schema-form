@@ -1,8 +1,14 @@
 
 import SwiftUI
 
+// This exists to allow ForEach to have a stable ID reference for ordering/deletion, etc.
+struct ArrayItem<T> {
+    public var id: UUID = UUID()
+    public var item: T
+}
+
 public struct ArrayType: Encodable, Decodable, View {
-    @State var collection: Array<JsonValue> = [] // TODO: Use Environment instead of state
+    @State var collection: Array<ArrayItem<JsonType>> = [] // TODO: Use Environment instead of state
     
     var type: SchemaType = SchemaType.array
     var items: Array<JsonType> = []
@@ -18,14 +24,15 @@ public struct ArrayType: Encodable, Decodable, View {
     
     public init(from decoder: Decoder) throws {
         let kv = try decoder.container(keyedBy: CodingKeys.self)
-        self.type = SchemaType.array
+        self.title = try kv.decodeIfPresent(String.self, forKey: CodingKeys.title)
+        self.description = try kv.decodeIfPresent(String.self, forKey: CodingKeys.description)
         if let v = try kv.decodeIfPresent(JsonType.self, forKey: CodingKeys.items) {
             self.items = [ v ]
         }
     }
     
     public func jsonValue() throws -> JsonValue {
-        return .JsonArray(value: self.collection)
+        return .JsonArray(value: try self.collection.map {x in try x.item.jsonValue()})
     }
     
     public func encode(to encoder: Encoder) throws {
@@ -40,17 +47,25 @@ public struct ArrayType: Encodable, Decodable, View {
         }
     }
     
+    private func removeItems(at offsets: IndexSet) {
+        collection.remove(atOffsets: offsets)
+    }
+    
     public var body: some View {
-        VStack(alignment: .leading) {
-            ForEach(collection, id: \.self) { x in
-                Text(try! x.encodeString())
-            }
+        // TODO: Include the title if appropriate
+        List {
+            ForEach(collection, id: \.id) { x in
+                x.item
+            }.onDelete(perform: removeItems)
+            
             if let i = items[0] { // removes the need for Hashable w/ ForEach
-                i
-                Button(title ?? "Add") {
-                    collection.append(try! i.jsonValue()) // TODO: Make this try safe.
-                }.buttonStyle(.borderless)
+                Button {
+                    let j = i // TODO: Figure out how to do a "deep-copy" of this value
+                    collection.append(ArrayItem(item: j))
+                } label: {
+                    Image(systemName: "plus") // (title ?? "New Item")
+                }.buttonStyle(.bordered)
             }
-        }.padding().background(Color(.systemGray6))
+        }
     }
 }
