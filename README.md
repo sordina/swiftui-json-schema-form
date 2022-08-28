@@ -7,3 +7,11 @@ The main differences being:
 * The UI-Schema and Themes focused on Swift Form components and styles
 
 
+## TODO
+
+* [ ] Export Data from Form
+* [ ] Get nested styles looking good
+* [ ] Themes
+* [ ] Styles
+* [ ] More example schemas
+* [ ] Ability to lazy-load schemas from URLs (configurable)

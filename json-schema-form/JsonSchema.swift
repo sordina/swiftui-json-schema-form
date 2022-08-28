@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct JsonSchema_Previews: PreviewProvider {
-    // TODO: Find some way to include geographical-location.schema in preview assets instead of main bundle
+    // TODO: Find some way to include schemas in preview assets instead of main bundle
     static var previews: some View {
         let bundle = Bundle.main
         if let path = bundle.path(forResource: "card.schema", ofType: "json") {
@@ -30,6 +30,10 @@ class SchemaEnvironment: ObservableObject {
         self.refs = refs
         self.value = value
     }
+}
+
+protocol Scalar {
+    var scalar: Bool { get }
 }
 
 // Used to test if a key is present. The actual decoding result isn't used.
@@ -115,7 +119,7 @@ public enum SchemaType: String, Encodable, Decodable {
     case null
 }
 
-public enum JsonType: Encodable, Decodable, View {
+public enum JsonType: Encodable, Decodable, View, Scalar {
     case object(ObjectType)
     case number(NumberType)
     case array(ArrayType)
@@ -168,6 +172,19 @@ public enum JsonType: Encodable, Decodable, View {
         case .null(_): return .JsonNull
         case .boolean(let b): return try b.jsonValue()
         case .ref(let r): return try r.jsonValue()
+        }
+    }
+    
+    // TODO: Quick implementation. Improve later.
+    public var scalar: Bool {
+        switch self {
+        case .object(_): return false
+        case .number(_): return true
+        case .array(_): return false
+        case .string(_): return true
+        case .null(_): return true
+        case .boolean(_): return true
+        case .ref(_): return false // TODO: Find out how to do this dynamically
         }
     }
     
@@ -237,6 +254,8 @@ public struct RefType: Encodable, Decodable, View {
     public var body: some View {
         if let s = settings.refs.entries[ref] {
             s.type
+        } else {
+            Text("Couldn't find referenced schema").foregroundColor(.red).italic()
         }
     }
 }
@@ -303,16 +322,19 @@ public struct StringType: Encodable, Decodable, View {
     var type: SchemaType = SchemaType.string
     var title: String?
     var description: String?
+    var defaultValue: String?
+    
     @ObservedObject private var value = Model()
     
     class Model: ObservableObject {
-        var value: String = "String LOL"
+        var value: String = ""
     }
     
     private enum CodingKeys: String, CodingKey {
         case type
         case title
         case description
+        case defaultValue = "default"
     }
     
     public init(from decoder: Decoder) throws {
@@ -320,6 +342,8 @@ public struct StringType: Encodable, Decodable, View {
         self.type = SchemaType.array
         self.title = try kv.decodeIfPresent(String.self, forKey: .title)
         self.description = try kv.decodeIfPresent(String.self, forKey: .description)
+        self.defaultValue = try kv.decodeIfPresent(String.self, forKey: .defaultValue)
+        value.value = defaultValue ?? "" // TODO: Figure out how to handle optionals
     }
     
     public func jsonValue() throws -> JsonValue {
@@ -331,10 +355,11 @@ public struct StringType: Encodable, Decodable, View {
         try kv.encode(type, forKey: .type)
         try kv.encode(title, forKey: .title)
         try kv.encode(description, forKey: .description)
+        try kv.encode(defaultValue, forKey: .defaultValue)
     }
     
     public var body: some View {
-        TextField("String", text: $value.value)
+        TextField("String", text: $value.value, prompt: Text("\(title ?? "") \(description ?? "")"))
     }
 }
 
@@ -429,7 +454,7 @@ public struct ArrayType: Encodable, Decodable, View {
                     collection.append(try! i.jsonValue()) // TODO: Make this try safe.
                 }.buttonStyle(.borderless)
             }
-        }.padding() // .border(.blue)
+        }.padding().background(Color(.systemGray6))
     }
 }
 
@@ -439,8 +464,11 @@ public struct ObjectType: Encodable, Decodable, View {
     var title: String?
     var description: String?
     var properties: Dictionary<String, JsonType>?
-    var required: Array<String>? // TODO: Should be present in properties
-    var dependentRequired: Dictionary<String, Array<String>>? // TODO: Should be present in properties
+    // NOTE: `required` and `dependentRequired` are validated to be present in properties.
+    var required: Array<String>?
+    var dependentRequired: Dictionary<String, Array<String>>?
+    
+    @State private var advanced: Bool = false
 
     enum CodingKeys: String, CodingKey {
         case type
@@ -480,6 +508,16 @@ public struct ObjectType: Encodable, Decodable, View {
         }
     }
     
+    @ViewBuilder private func item(_ k: String, _ v: JsonType) -> some View {
+        switch v {
+        case .boolean(_): v
+        default:
+            Section(header: Text(k)) {
+                v
+            }
+        }
+    }
+    
     public var body: some View {
         if let t = title {
             if let d = description {
@@ -492,9 +530,28 @@ public struct ObjectType: Encodable, Decodable, View {
         }
         
         if let p = properties {
-            ForEach(p.sorted(by: {$0.0 < $1.0}), id: \.key) { k, v in
-                Section(header: Text(k)) {
-                    v
+            // TODO: Do this more efficiently. Also just have required default to [] if missing.
+            let reqs = p.filter({ (required ?? []).contains($0.key) })
+            let opts = p.filter({ !(required ?? []).contains($0.key) })
+            ForEach(reqs.sorted(by: {$0.0 < $1.0}), id: \.key) { k, v in
+                // Bools can be toggled inline... But
+                // TODO: Need to find a way to pass through the key if the title is missing
+                // TODO: Find a way to share this code
+                item(k,v)
+            }
+
+            if opts.count > 0 {
+                Section(header: HStack {
+                    Text("Additional Options").italic()
+                    Toggle("", isOn: $advanced).font(.system(size: 14).weight(.bold))
+                }) {
+                    EmptyView()
+                }
+                
+                if advanced {
+                    ForEach(opts.sorted(by: {$0.0 < $1.0}), id: \.key) { k, v in
+                        item(k,v)
+                    }
                 }
             }
         }
