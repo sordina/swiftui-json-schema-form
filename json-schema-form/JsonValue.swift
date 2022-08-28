@@ -1,9 +1,3 @@
-//
-//  JsonValue.swift
-//  Agent Dashboard
-//
-//  Created by Lyndon Maydwell on 25/7/2022.
-//
 
 import SwiftUI
 

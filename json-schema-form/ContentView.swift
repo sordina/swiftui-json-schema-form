@@ -1,9 +1,3 @@
-//
-//  ContentView.swift
-//  json-schema-form
-//
-//  Created by Lyndon Maydwell on 31/7/2022.
-//
 
 import SwiftUI
 
