@@ -56,7 +56,9 @@ public struct ArrayType: Encodable, Decodable, View {
         List {
             ForEach(collection, id: \.id) { x in
                 x.item
-            }.onDelete(perform: removeItems)
+            }
+            .onDelete(perform: removeItems)
+            // ^ https://www.hackingwithswift.com/books/ios-swiftui/deleting-items-using-ondelete
             
             if let i = items[0] { // removes the need for Hashable w/ ForEach
                 Button {
