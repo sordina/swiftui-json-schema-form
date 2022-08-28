@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-public struct NumberType: Encodable, Decodable, View {
+public struct NumberType: Encodable, Decodable, View, Copy {
     @State private var number: Float?
     
     var type: SchemaType = SchemaType.number

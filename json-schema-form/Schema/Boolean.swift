@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-public struct BooleanType: Encodable, Decodable, View {
+public struct BooleanType: Encodable, Decodable, View, Copy {
     var type: SchemaType = SchemaType.boolean
     var title: String?
     var description: String?

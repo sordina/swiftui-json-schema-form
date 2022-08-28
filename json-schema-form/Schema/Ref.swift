@@ -19,7 +19,7 @@ public struct RefSchemaMap {
     }
 }
 
-public struct RefType: Encodable, Decodable, View {
+public struct RefType: Encodable, Decodable, View, Copy {
     @EnvironmentObject var settings: SchemaEnvironment
 
     // Note: RefType doesn't need a type field, since refs are indicated by a "$ref" key, not a "type" key.

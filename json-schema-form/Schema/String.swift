@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-public struct StringType: Encodable, Decodable, View {
+public struct StringType: Encodable, Decodable, View, Copy {
     var type: SchemaType = SchemaType.string
     var title: String?
     var description: String?
@@ -33,6 +33,16 @@ public struct StringType: Encodable, Decodable, View {
         return .JsonString(value: value.value)
     }
     
+    public func copy() -> StringType {
+        var result = self
+        result.respawnValue()
+        return result
+    }
+    
+    public mutating func respawnValue() {
+        self.value = Model()
+    }
+    
     public func encode(to encoder: Encoder) throws {
         var kv = encoder.container(keyedBy: CodingKeys.self)
         try kv.encode(type, forKey: .type)
@@ -41,8 +51,16 @@ public struct StringType: Encodable, Decodable, View {
         try kv.encode(defaultValue, forKey: .defaultValue)
     }
     
+    private func prompt() -> Text {
+        if title != nil || description != nil {
+            return Text("\(title ?? "") \(description ?? "")")
+        } else {
+            return Text("...")
+        }
+    }
+    
     public var body: some View {
-        TextField("String", text: $value.value, prompt: Text("\(title ?? "") \(description ?? "")"))
+        TextField("String", text: $value.value, prompt: prompt())
     }
 }
 

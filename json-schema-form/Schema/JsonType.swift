@@ -10,7 +10,8 @@ public enum SchemaType: String, Encodable, Decodable {
     case null
 }
 
-public enum JsonType: Encodable, Decodable, View {
+public enum JsonType: Encodable, Decodable, View, Copy {
+    
     case object(ObjectType)
     case number(NumberType)
     case array(ArrayType)
@@ -62,6 +63,18 @@ public enum JsonType: Encodable, Decodable, View {
         case .null(_): return .JsonNull
         case .boolean(let b): return try b.jsonValue()
         case .ref(let r): return try r.jsonValue()
+        }
+    }
+    
+    public func copy() -> JsonType {
+        switch self {
+        case .object(let o): return .object(o.copy())
+        case .number(let n): return .number(n.copy())
+        case .array(let a): return .array(a.copy())
+        case .string(let s): return .string(s.copy())
+        case .null(let n): return .null(n.copy())
+        case .boolean(let b): return .boolean(b.copy())
+        case .ref(let r): return .ref(r.copy())
         }
     }
     

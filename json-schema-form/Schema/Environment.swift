@@ -10,3 +10,14 @@ class SchemaEnvironment: ObservableObject {
         self.value = value
     }
 }
+
+protocol Copy {
+    func copy() -> Self
+}
+
+extension Copy {
+  func copy() -> Self {
+    return self
+  }
+}
+

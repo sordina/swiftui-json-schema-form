@@ -1,7 +1,7 @@
 
 import SwiftUI
 
-public struct ObjectType: Encodable, Decodable, View {
+public struct ObjectType: Encodable, Decodable, View, Copy {
     let type: SchemaType = SchemaType.object
     var title: String?
     var description: String?

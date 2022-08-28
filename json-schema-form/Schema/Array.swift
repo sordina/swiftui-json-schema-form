@@ -7,7 +7,7 @@ struct ArrayItem<T> {
     public var item: T
 }
 
-public struct ArrayType: Encodable, Decodable, View {
+public struct ArrayType: Encodable, Decodable, View, Copy {
     @State var collection: Array<ArrayItem<JsonType>> = [] // TODO: Use Environment instead of state
     
     var type: SchemaType = SchemaType.array
@@ -62,7 +62,7 @@ public struct ArrayType: Encodable, Decodable, View {
             
             if let i = items[0] { // removes the need for Hashable w/ ForEach
                 Button {
-                    let j = i // TODO: Figure out how to do a "deep-copy" of this value
+                    let j = i.copy()
                     collection.append(ArrayItem(item: j))
                 } label: {
                     Image(systemName: "plus") // (title ?? "New Item")
