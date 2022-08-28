@@ -8,7 +8,6 @@
 
 import SwiftUI
 
-
 struct JsonSchema_Previews: PreviewProvider {
     // TODO: Find some way to include geographical-location.schema in preview assets instead of main bundle
     static var previews: some View {
@@ -20,6 +19,16 @@ struct JsonSchema_Previews: PreviewProvider {
         } else {
             Text("Preview Schema could not be loaded.").padding()
         }
+    }
+}
+
+class SchemaEnvironment: ObservableObject {
+    @Published var refs: RefSchemaMap
+    @Published var value: JsonValue
+    
+    init(refs: RefSchemaMap, value: JsonValue) {
+        self.refs = refs
+        self.value = value
     }
 }
 
@@ -41,12 +50,16 @@ public struct TestKey: Decodable {
 public struct JsonSchema: Encodable, Decodable, View {
     var id: String
     var schema: String
+    var title: String?
+    var description: String?
     var type: JsonType
     var defs: Dictionary<String, JsonType>?
 
     enum CodingKeys: String, CodingKey {
         case id = "$id"
         case schema = "$schema"
+        case title = "title"
+        case description = "description"
         case defs = "$defs"
     }
     
@@ -56,6 +69,8 @@ public struct JsonSchema: Encodable, Decodable, View {
         
         self.id = try kv.decode(String.self, forKey: .id)
         self.schema = try kv.decode(String.self, forKey: .schema)
+        self.title = try kv.decodeIfPresent(String.self, forKey: .title)
+        self.description = try kv.decodeIfPresent(String.self, forKey: .description)
         self.type = try c.decode(JsonType.self)
         self.defs = try kv.decodeIfPresent(Dictionary<String, JsonType>.self, forKey: .defs)
     }
@@ -64,6 +79,8 @@ public struct JsonSchema: Encodable, Decodable, View {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(self.id, forKey: CodingKeys.id)
         try c.encode(self.schema, forKey: CodingKeys.schema)
+        try c.encode(self.title, forKey: CodingKeys.title)
+        try c.encode(self.description, forKey: CodingKeys.description)
         try self.type.encode(to: encoder) // neat
     }
     
@@ -71,17 +88,20 @@ public struct JsonSchema: Encodable, Decodable, View {
         let encoder = JSONEncoder()
         let _ = encoder.outputFormatting = .prettyPrinted
         let data = try encoder.encode(self)
-        let str = String(data: data, encoding: .utf8)! // Throw error if not encodable
+        let str = String(data: data, encoding: .utf8)!
         return str
     }
     
     public var body: some View {
         Form {
-                Section(header: Text("JSON Schema Form!")) {
-                    Link(schema, destination: URL(string: schema)!).font(.system(size: 12))
-                    Link(id, destination: URL(string: id)!).font(.system(size: 12))
-                    type
+            Section(header: Text(title ?? id)) {
+                VStack(alignment: .leading) {
+                    Link(schema, destination: URL(string: schema)!).font(.system(size: 10).italic())
+                    Link(id, destination: URL(string: id)!).font(.system(size: 10).italic())
                 }
+                if let d = description { Text(d).italic() }
+            }
+            type
         }
     }
 }
@@ -178,7 +198,7 @@ public enum JsonType: Encodable, Decodable, View {
         case .string(let s): return AnyView(s)
         case .null(_): return AnyView(EmptyView()) // Null doesn't need a form
         case .boolean(let b): return AnyView(b)
-        case .ref(let r): return AnyView(Text("Ref"))
+        case .ref(let r): return AnyView(r)
         }
     }
 }
@@ -201,7 +221,9 @@ public struct RefSchemaMap {
     }
 }
 
-public struct RefType: Encodable, Decodable {
+public struct RefType: Encodable, Decodable, View {
+    @EnvironmentObject var settings: SchemaEnvironment
+
     var ref: String
 
     enum CodingKeys: String, CodingKey {
@@ -210,6 +232,12 @@ public struct RefType: Encodable, Decodable {
     
     public func jsonValue() throws -> JsonValue {
         return .JsonNull // TODO: Store an actual referenced value
+    }
+    
+    public var body: some View {
+        if let s = settings.refs.entries[ref] {
+            s.type
+        }
     }
 }
 
@@ -453,12 +481,19 @@ public struct ObjectType: Encodable, Decodable, View {
     }
     
     public var body: some View {
-        VStack(alignment: .leading) {
-            if let t = title { Text(t) }
-            if let d = description { Text(d) }
-            if let p = properties {
-                ForEach(p.sorted(by: {$0.0 < $1.0}), id: \.key) { k, v in
-                    Text(k).bold()
+        if let t = title {
+            if let d = description {
+                Section(header: Text(t)) {
+                    Text(d).italic()
+                }
+            }
+        } else if let d = description {
+            Text(d).italic()
+        }
+        
+        if let p = properties {
+            ForEach(p.sorted(by: {$0.0 < $1.0}), id: \.key) { k, v in
+                Section(header: Text(k)) {
                     v
                 }
             }
