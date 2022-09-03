@@ -10,22 +10,16 @@ struct ArrayItem<T> {
 public struct ArrayType: Encodable, Decodable, View, Copy {
     @State var collection: Array<ArrayItem<JsonType>> = [] // TODO: Use Environment instead of state
     
-    var type: SchemaType = SchemaType.array
+    var common: CommonProperties<Array<JsonValue>>
     var items: Array<JsonType> = []
-    var title: String?
-    var description: String?
     
     enum CodingKeys: String, CodingKey {
-        case type
         case items
-        case title
-        case description
     }
     
     public init(from decoder: Decoder) throws {
+        self.common = try CommonProperties(from: decoder)
         let kv = try decoder.container(keyedBy: CodingKeys.self)
-        self.title = try kv.decodeIfPresent(String.self, forKey: CodingKeys.title)
-        self.description = try kv.decodeIfPresent(String.self, forKey: CodingKeys.description)
         if let v = try kv.decodeIfPresent(JsonType.self, forKey: CodingKeys.items) {
             self.items = [ v ]
         }
@@ -37,7 +31,6 @@ public struct ArrayType: Encodable, Decodable, View, Copy {
     
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(self.type, forKey: .type)
         switch self.items.count {
         case 0:
             try c.encodeNil(forKey: .items)

@@ -28,10 +28,7 @@ func flags(_ s: String) throws -> NSRegularExpression.Options {
 }
 
 public struct StringType: Encodable, Decodable, View, Copy {
-    var type: SchemaType = SchemaType.string
-    var title: String?
-    var description: String?
-    var defaultValue: String?
+    var common: CommonProperties<String>
     var pattern: NSRegularExpression?
 
     @ObservedObject private var value = Model()
@@ -46,25 +43,18 @@ public struct StringType: Encodable, Decodable, View, Copy {
     }
     
     private enum CodingKeys: String, CodingKey {
-        case type
-        case title
-        case description
         case pattern
         case patternFlags = "flags"
-        case defaultValue = "default"
     }
     
     public init(from decoder: Decoder) throws {
         let kv = try decoder.container(keyedBy: CodingKeys.self)
-        self.type = SchemaType.array
-        self.title = try kv.decodeIfPresent(String.self, forKey: .title)
-        self.description = try kv.decodeIfPresent(String.self, forKey: .description)
-        self.defaultValue = try kv.decodeIfPresent(String.self, forKey: .defaultValue)
+        self.common = try CommonProperties(from: decoder)
         if let p = try kv.decodeIfPresent(String.self, forKey: .pattern) {
             let fs = try kv.decodeIfPresent(String.self, forKey: .patternFlags)
             self.pattern = try NSRegularExpression(pattern: p, options: flags(fs ?? ""))
         }
-        value.value = defaultValue ?? "" // TODO: Figure out how to handle optionals
+        value.value = common.defaultValue ?? "" // TODO: Figure out how to handle optionals
     }
     
     public func jsonValue() throws -> JsonValue {
@@ -83,16 +73,13 @@ public struct StringType: Encodable, Decodable, View, Copy {
     
     public func encode(to encoder: Encoder) throws {
         var kv = encoder.container(keyedBy: CodingKeys.self)
-        try kv.encode(type, forKey: .type)
-        try kv.encode(title, forKey: .title)
-        try kv.encode(description, forKey: .description)
-        try kv.encode(defaultValue, forKey: .defaultValue)
         try kv.encode(pattern?.pattern, forKey: .pattern)
+        try common.encode(to: encoder)
     }
     
     private func prompt() -> Text {
-        if title != nil || description != nil {
-            return Text("\(title ?? "") \(description ?? "")")
+        if common.title != nil || common.description != nil {
+            return Text("\(common.title ?? "") \(common.description ?? "")")
         } else {
             return Text("...")
         }

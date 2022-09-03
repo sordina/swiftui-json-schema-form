@@ -2,9 +2,7 @@
 import SwiftUI
 
 public struct ObjectType: Encodable, Decodable, View, Copy {
-    let type: SchemaType = SchemaType.object
-    var title: String?
-    var description: String?
+    var common: CommonProperties<Dictionary<String,JsonValue>>
     var properties: Dictionary<String, JsonType>?
     // NOTE: `required` and `dependentRequired` are validated to be present in properties.
     var required: Array<String>?
@@ -13,12 +11,17 @@ public struct ObjectType: Encodable, Decodable, View, Copy {
     @State private var advanced: Bool = false
 
     enum CodingKeys: String, CodingKey {
-        case type
-        case title
-        case description
         case properties
         case required
         case dependentRequired
+    }
+    
+    public init(from decoder: Decoder) throws {
+        self.common = try CommonProperties(from: decoder)
+        let kv = try decoder.container(keyedBy: CodingKeys.self)
+        self.properties = try kv.decodeIfPresent(Dictionary<String, JsonType>.self, forKey: .properties)
+        self.required = try kv.decodeIfPresent(Array<String>.self, forKey: CodingKeys.required)
+        self.dependentRequired = try kv.decodeIfPresent(Dictionary<String, Array<String>>.self, forKey: CodingKeys.dependentRequired)
     }
     
     public func jsonValue() throws -> JsonValue {
@@ -61,13 +64,13 @@ public struct ObjectType: Encodable, Decodable, View, Copy {
     }
     
     public var body: some View {
-        if let t = title {
-            if let d = description {
+        if let t = common.title {
+            if let d = common.description {
                 Section(header: Text(t)) {
                     Text(d).italic()
                 }
             }
-        } else if let d = description {
+        } else if let d = common.description {
             Text(d).italic()
         }
         

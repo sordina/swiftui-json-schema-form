@@ -4,20 +4,21 @@ import SwiftUI
 public struct NumberType: Encodable, Decodable, View, Copy {
     @State private var number: Float?
     
-    var type: SchemaType = SchemaType.number
+    var common: CommonProperties<Float>
     var minimum: Float?
     var maximum: Float?
-    var title: String?
-    var description: String?
-    var defaultValue: Float?
 
     private enum CodingKeys: String, CodingKey {
-        case type
         case minimum
         case maximum
-        case title
-        case description
-        case defaultValue = "default"
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let kv = try decoder.container(keyedBy: CodingKeys.self)
+        self.common = try CommonProperties(from: decoder)
+        self.minimum = try kv.decodeIfPresent(Float.self, forKey: .minimum)
+        self.maximum = try kv.decodeIfPresent(Float.self, forKey: .maximum)
+        self.number = common.defaultValue
     }
     
     public func jsonValue() throws -> JsonValue {
@@ -30,8 +31,8 @@ public struct NumberType: Encodable, Decodable, View, Copy {
     
     public var body: some View {
         Section {
-            if let t = title { Text(t) }
-            if let d = description { Text(d) }
+            if let t = common.title { Text(t) }
+            if let d = common.description { Text(d) }
             TextField("Number", value: $number, format: .number)
                 .onChange(of: number) { nM in
                     if let n = nM {
