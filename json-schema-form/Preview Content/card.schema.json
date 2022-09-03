@@ -10,7 +10,8 @@
       "type": "string"
     },
     "familyName": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[A-Z]"
     },
     "givenName": {
       "type": "string",
