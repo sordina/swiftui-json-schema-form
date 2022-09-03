@@ -28,18 +28,6 @@ public struct NumberType: Encodable, Decodable, View, Copy {
         }
     }
     
-//    public init(from decoder: Decoder) throws {
-//        let kv = try decoder.container(keyedBy: CodingKeys.self)
-//        self.title = try kv.decodeIfPresent(String.self, forKey: CodingKeys.title)
-//        self.description = try kv.decodeIfPresent(String.self, forKey: CodingKeys.description)
-//        self.minimum = try kv.decodeIfPresent(Float.self, forKey: CodingKeys.minimum)
-//        self.maximum = try kv.decodeIfPresent(Float.self, forKey: CodingKeys.maximum)
-//        self.defaultValue = try kv.decodeIfPresent(Float.self, forKey: CodingKeys.defaultValue)
-//        if let d = self.defaultValue {
-//            self.number = d
-//        }
-//    }
-    
     public var body: some View {
         Section {
             if let t = title { Text(t) }

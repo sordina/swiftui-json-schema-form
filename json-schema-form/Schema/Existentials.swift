@@ -17,3 +17,11 @@ public struct AnyOfType: Encodable, Decodable {
     }
 }
 
+public struct OneOfType: Encodable, Decodable {
+    var anyOf: Array<JsonType>
+    
+    enum CodingKeys: String, CodingKey {
+        case anyOf
+    }
+}
+

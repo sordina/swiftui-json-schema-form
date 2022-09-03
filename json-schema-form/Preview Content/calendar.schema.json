@@ -14,7 +14,9 @@
       "description": "Event ending time"
     },
     "summary": {
-      "type": "string"
+      "type": "string",
+      "pattern": ".*buggy.*",
+      "flags": "i"
     },
     "location": {
       "type": "string"
