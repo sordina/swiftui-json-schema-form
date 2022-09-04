@@ -36,7 +36,9 @@ public struct RefType: Encodable, Decodable, View, Copy {
     public var body: some View {
         if let s = settings.refs.entries[ref] {
             NavigationLink(try! s.type.jsonValue().encodeString()) {
-                s.type
+                Form {
+                    s.type
+                }
             }
         } else {
             Text("Couldn't find referenced schema").foregroundColor(.red).italic()

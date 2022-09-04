@@ -15,3 +15,10 @@ public struct CommonProperties<T: Encodable & Decodable>: Encodable, Decodable {
     }
 }
 
+final class Box<T> {
+    var value: T
+
+    init(value: T) {
+        self.value = value
+    }
+}

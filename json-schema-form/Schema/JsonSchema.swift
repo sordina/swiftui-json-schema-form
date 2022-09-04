@@ -65,17 +65,15 @@ public struct JsonSchema: Encodable, Decodable, View {
     }
     
     public var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text(title ?? id)) {
-                    VStack(alignment: .leading) {
-                        Link(schema, destination: URL(string: schema)!).font(.system(size: 10).italic())
-                        Link(id, destination: URL(string: id)!).font(.system(size: 10).italic())
-                    }
-                    if let d = description { Text(d).italic() }
+        Form {
+            Section(header: Text(title ?? id)) {
+                VStack(alignment: .leading) {
+                    Link(schema, destination: URL(string: schema)!).font(.system(size: 10).italic())
+                    Link(id, destination: URL(string: id)!).font(.system(size: 10).italic())
                 }
-                type
+                if let d = description { Text(d).italic() }
             }
+            type
         }
     }
 }

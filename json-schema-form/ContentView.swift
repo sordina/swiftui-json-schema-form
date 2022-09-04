@@ -22,21 +22,25 @@ struct ContentView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading) {
-            TextField("Path", text: $path).onChange(of: path) { s in
-                setSchema()
-            }.padding()
-            switch self.schema {
-            case .some(let s):
-                s
-            case .none:
-                Text(loading)
-                    .padding()
-                    .onAppear {
-                        setSchema()
-                    }
-                Spacer()
+        NavigationView {
+            Group {
+                switch self.schema {
+                case .some(let s):
+                    s
+                case .none:
+                    Text(loading)
+                        .padding()
+                        .onAppear {
+                            setSchema()
+                        }
+                    Spacer()
+                }
             }
+            .navigationBarItems(leading:
+                TextField("Path", text: $path).onChange(of: path) { s in
+                    setSchema()
+                }
+            )
         }.environmentObject(environment)
     }
 }
