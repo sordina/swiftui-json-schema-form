@@ -1,8 +1,16 @@
 
 import SwiftUI
 
+extension Dictionary {
+    mutating func merge(dict: [Key: Value]){
+        for (k, v) in dict {
+            updateValue(v, forKey: k)
+        }
+    }
+}
+
 public struct RefSchemaMap {
-    var entries: Dictionary<String, JsonSchema> = [:]
+    var entries: Dictionary<String, JsonSchema>
     public init(files: Array<String>) {
         var items: Array<(String, JsonSchema)> = []
         for p in files {
@@ -16,6 +24,28 @@ public struct RefSchemaMap {
         }
         self.entries = Dictionary(uniqueKeysWithValues: items)
         print("RefSchemaMap Keys:", self.entries.keys) // TODO: Remove debugging
+    }
+    
+    public init(namedSchemaFiles: Dictionary<String,String>) {
+        var items: Array<(String, JsonSchema)> = []
+        for (n, p) in namedSchemaFiles {
+            let bundle = Bundle.main
+            if let path = bundle.path(forResource: p, ofType: "json") {
+                let data = try! Data(contentsOf: URL(fileURLWithPath: path))
+                let decoder = JSONDecoder()
+                let decoded = try! decoder.decode(JsonSchema.self, from: data)
+                items.append((n, decoded))
+            }
+        }
+        self.entries = Dictionary(uniqueKeysWithValues: items)
+        print("RefSchemaMap Keys:", self.entries.keys) // TODO: Remove debugging
+    }
+    
+    public func append(_ m: RefSchemaMap) -> RefSchemaMap {
+        var result = RefSchemaMap(files: [])
+        result.entries.merge(dict: self.entries)
+        result.entries.merge(dict: m.entries)
+        return result
     }
 }
 

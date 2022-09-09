@@ -54,13 +54,7 @@ public struct ObjectType: Encodable, Decodable, View, Copy {
     }
     
     @ViewBuilder private func item(_ k: String, _ v: JsonType) -> some View {
-        switch v {
-        case .boolean(_): v
-        default:
-            Section(header: Text(k)) {
-                v
-            }
-        }
+        v.environmentObject(Key(k))
     }
     
     public var body: some View {

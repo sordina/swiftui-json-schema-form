@@ -28,6 +28,8 @@ func flags(_ s: String) throws -> NSRegularExpression.Options {
 }
 
 public struct StringType: Encodable, Decodable, View, Copy {
+    @EnvironmentObject var key: Key
+
     var common: CommonProperties<String>
     var pattern: NSRegularExpression?
 
@@ -86,17 +88,19 @@ public struct StringType: Encodable, Decodable, View, Copy {
     }
     
     public var body: some View {
-        TextField("String", text: $value.value, prompt: prompt())
-            .foregroundColor(validity)
-            .onChange(of: value.value) { v in
-                if let p = pattern {
-                    if p.matches(v) {
-                        validity = .green
-                    } else {
-                        validity = .red
+        Section(header: Text(common.title ?? key.key ?? "String")) {
+            TextField("String", text: $value.value, prompt: prompt())
+                .foregroundColor(validity)
+                .onChange(of: value.value) { v in
+                    if let p = pattern {
+                        if p.matches(v) {
+                            validity = .green
+                        } else {
+                            validity = .red
+                        }
                     }
                 }
-            }
+        }
     }
 }
 

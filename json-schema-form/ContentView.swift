@@ -5,8 +5,9 @@ struct ContentView: View {
     @State var path = "geographical-location.schema"
     @State var schema: JsonSchema?
     @State var loading = "Loading..."
-    @StateObject var environment = SchemaEnvironment(refs: RefSchemaMap(
-        files: ["address.schema","calendar.schema","card.schema","geographical-location.schema"]),
+    @StateObject var environment = SchemaEnvironment(
+        refs: RefSchemaMap(
+            files: ["address.schema","calendar.schema","card.schema","geographical-location.schema"]),
         value: .JsonString(value: "lol"))
     
     func setSchema() {

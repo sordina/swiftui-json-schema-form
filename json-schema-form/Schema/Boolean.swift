@@ -2,6 +2,8 @@
 import SwiftUI
 
 public struct BooleanType: Encodable, Decodable, View, Copy {
+    @EnvironmentObject var key: Key
+
     var common: CommonProperties<Bool>
 
     @State var value = false
@@ -19,7 +21,7 @@ public struct BooleanType: Encodable, Decodable, View, Copy {
     }
     
     public var body: some View {
-        Toggle(common.title ?? "Boolean", isOn: $value)
+        Toggle(common.title ?? key.key ?? "Boolean", isOn: $value)
     }
 }
 

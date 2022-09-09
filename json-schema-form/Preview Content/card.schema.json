@@ -78,7 +78,8 @@
       "type": "string"
     },
     "bday": {
-      "type": "string"
+      "type": "string",
+      "title": "Birthday"
     },
     "title": {
       "type": "string"
